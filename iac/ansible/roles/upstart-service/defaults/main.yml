@@ -1,0 +1,3 @@
+---
+needaction: "{{ state }}"
+service_daemon: "{{ daemon }}"

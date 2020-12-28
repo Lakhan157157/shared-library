@@ -1,0 +1,13 @@
+- name: '{{ needaction }} is performing on {{ service_deamon }}'
+  service: name={{ service_daemon }} state={{ needaction }}
+  when: ansible_distribution == "RedHat"
+
+- name: '{{ needaction }} is performing on {{ service_deamon }}'
+  service: name={{ service_daemon }} state={{ needaction }}
+  when: ansible_distribution == "Ubuntu"
+
+- name: '{{ needaction }} is performing on {{ service_deamon }}'
+  win_service: name={{ service_daemon }} state={{ needaction }}
+  when: ansible_distribution == "Windows"
+  
+

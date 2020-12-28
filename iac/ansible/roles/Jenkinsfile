@@ -1,0 +1,77 @@
+#!groovy
+pipeline {
+    agent any
+    }
+
+    stages {
+        stage("Initialize Pipeline") {
+            steps {
+                script {
+                    echo "Ansible Playbook Pipeline....."
+                    sh "#!/usr/bin/sh \necho 'Setting up ansible configuration'"
+                    sh "#!/usr/bin/sh \necho '${Hosts}' > roles/${directory_name}/inventory"
+                    sh "#!/usr/bin/sh \necho 'AnsiblePassword: ${AnsiblePassword}' > 'roles/${directory_name}/passdata.yml'"
+                }
+            }
+        }
+        stage("Ansible Execution") {
+            steps{
+                script {
+                    echo 'Running Ansible Playbook'
+                    command = getAnsibleCommand('')
+                    echo "NODE_NAME: ${env.NODE_NAME}"
+                    if ("${env.NODE_NAME}" == "master"){
+                        sh "#!/usr/bin/sh \n${command}"
+                    } else {
+                        echo "Cleaning Directory"
+                        sshPublisher (
+                            continueOnError: false, failOnError: true,
+                            publishers: [ sshPublisherDesc(
+                                configName: 'Ansible server ',
+                                transfers: [
+                                    sshTransfer(
+                                        sourceFiles: "",
+                                        removePrefix: "",
+                                        remoteDirectory: "",
+                                        cleanRemote: true,
+                                        execCommand: "rm -rf roles/${directory_name}/*"
+                                    )
+                                ]
+                            )]
+                        )
+                        echo "Sending the Ansible Playbook command using ssh."
+                        command = getAnsibleCommand('')
+
+                        sshPublisher (
+                            continueOnError: false, failOnError: true,
+                            publishers: [ sshPublisherDesc(
+                                configName: 'Ansible server ',
+                                transfers: [
+                                    sshTransfer(
+                                        sourceFiles: "roles/${directory_name}/**",
+                                        removePrefix: "",
+                                        remoteDirectory: "",
+                                        cleanRemote: true,
+                                        execCommand: "${command}",
+                                        execTimeout: 120000000
+                                    )
+                                ]
+                            )]
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+def getAnsibleCommand(filePath){
+    command = "ansible-playbook -i roles/${filePath}${directory_name}/inventory "
+    def variableList = ["-e AnsibleUsername=${AnsibleUsername}", "-e @roles/${directory_name}/passdata.yml"]
+    variableList.each { item ->
+        command += "${item} "
+    }
+    command += " roles/${filePath}${directory_name}/main.yml -t ${Tool_Operation} -vvv"
+    return command
+}
