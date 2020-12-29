@@ -73,4 +73,3 @@ def getAnsibleCommand(rolename){
     command += "${WORKSPACE}/iac/ansible/main.yml -vvv"
     return command
 }
-}
