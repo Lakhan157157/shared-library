@@ -1,1 +1,2 @@
 @Library('myrepo') _
+standardpipeline{}
