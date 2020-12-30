@@ -1,5 +1,5 @@
 @Library('myrepo') _
-standardPipeline {
+startstop {
     projectName = "Project1"
     serverDomain = "Project1 Server Domain"
 }
